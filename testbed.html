@@ -1,0 +1,43 @@
+<html>
+
+<head>
+		<script type="text/javascript" src="jquery-1.10.2.js"></script>
+    	<script type="text/javascript" src='knockout-2.3.0.js'></script>
+    	<script type="text/javascript" src='d3.v3.min.js'></script>
+    	<script type="text/javascript" src='queue.js'></script>
+    	<script type="text/javascript" src='underscore.js'></script>
+		<script type="text/javascript" src="backbone.js"></script>
+    	<script type="text/javascript" src='vcjobmodel2.js'></script>
+		<script type="text/javascript">
+		
+
+d = new Date();
+d.setDate(d.getDate()-20);
+
+d4 = new Date(d.getTime() + 1000*3600*24);
+d5= new Date(d.getTime() + 1000*3600*24*2);
+d6= new Date(d.getTime() + 1000*3600*24*3);
+d7= new Date(d.getTime() + 1000*3600*24*4);
+d8= new Date(d.getTime() + 1000*3600*24*5);
+d9= new Date(d.getTime() + 1000*3600*24*6);
+d10= new Date(d.getTime() + 1000*3600*24*7);
+
+/*
+cash = new DataCache(4, ".", "Jobs-%Y-%m-%d");
+//data = cash.getDataPage(d4);
+cash.syncJobData([d4, d5, d6, d7, d8, d9]);
+data = cash.getJobData(d4);
+*/
+
+vcm = new VCJobLogModel();
+
+vcm.getJobLog(d4, new Date(), true);
+
+</script>
+</head>
+
+<body>
+
+</body>
+
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+.grid .tick {
+    stroke: lightgrey;
+    opacity: 0.7;
+}
+.grid path {
+      stroke-width: 0;
+      display: none;
+}
+
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis line,
+.axis path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+
+.axis .minor line {
+  stroke: #777;
+  stroke-dasharray: 2,2;
+}
+
+
+		</style>
+		<script type="text/javascript" src="jquery-1.10.2.js"></script>
+    	<script type="text/javascript" src='knockout-2.3.0.js'></script>
+		<script src="http://d3js.org/d3.v3.min.js"></script>
+		<script type="text/javascript">
+			function JobStateColorMapper(config, defaultColor){
+				this.colorConfig = config;
+				this.defaultColor = defaultColor;
+				this.map = function(state){
+					var clr = this.colorConfig[state];
+					return clr ? clr : this.defaultColor;
+				}
+			}
+
+			jobState2Color = new JobStateColorMapper({
+				Running : "blue",
+				Queued: "orange",
+				CompletedSuccess: "green",
+				CompletedFailure: "red",
+				Cancelled: "maroon",
+				Interrupted: "firebrick",
+				None: "gray"
+			}, "gray");
+
+
+			function timeFormat(formats) {
+			  return function(date) {
+			    var i = formats.length - 1, f = formats[i];
+			    while (!f[1](date)) f = formats[--i];
+			    return f[0](date);
+			  };
+			}
+			
+			var customTimeFormat = timeFormat([
+			  [d3.time.format("%Y"), function() { return d.getYear(); }],
+			  [d3.time.format("%b %d"), function(d) { return d.getMonth(); }],
+			  [d3.time.format("%b %d"), function(d) { return d.getDate() != 1; }],
+			  //[d3.time.format("%a %d"), function(d) { return d.getDay() && d.getDate() != 1; }],
+			  [d3.time.format("%I %p"), function(d) { return d.getHours(); }],
+			  [d3.time.format("%I:%M"), function(d) { return d.getMinutes(); }],
+			  [d3.time.format(":%S"), function(d) { return d.getSeconds(); }],
+			  [d3.time.format(".%L"), function(d) { return d.getMilliseconds(); }]
+			]);	
+
+			leftDate = new Date("2013/09/02 00:00:00");
+			leftTime = leftDate.getTime();
+			rightDate =  new Date("2013/09/03 00:00:00");
+			rightTime = rightDate.getTime();
+			entryHeight = 20;
+			bandHeight = 16;
+			leftPos = 100;
+			rightPos = 1300;
+			viewWidth = rightPos - leftPos;
+
+			
+
+
+
+			function showTimeAxis(svg){
+				xScale = d3.time.scale()
+					   .domain([leftDate, rightDate])
+					   .range([leftPos, rightPos]);
+
+				xAxisTop = d3.svg.axis()
+			         .scale(xScale)
+			         .orient("top")
+			         .ticks(12)
+					 .tickFormat(customTimeFormat)
+					 .tickSize(-400)
+					 .tickPadding(10);
+
+				xAxisBottom = d3.svg.axis()
+					 .scale(xScale)
+					 .orient("bottom")
+					 .ticks(48)
+					 .tickFormat(customTimeFormat)
+					 .tickSize(-400)
+					 .tickPadding(10);
+
+				svg.selectAll(".axis").remove();
+				svg.append("g").
+					attr("class", "axis")
+				    .attr("transform", "translate(0," + 20 + ")")
+				    .call(xAxisTop)
+				    .selectAll("text");
+
+    			svg.append("g")
+    				.attr("class", "axis minor")
+				    .attr("transform", "translate(0," + 420 + ")")
+				    .call(xAxisBottom)
+				    .selectAll("text")
+				    .attr("transform", "rotate(45)")
+				    .attr("x", 20)
+				    .attr("y", 10)
+			}
+
+			function showTimeChart(svg, dataSet, names){
+				rightTime = +rightDate;
+				leftTime = +leftDate;
+				var timeDelta = rightTime - leftTime;
+				var bands = svg.selectAll("rect").data(dataSet);
+				bands.enter().append("rect");/*.attr("y", function(d){ return names.indexOf(d.name)*20 + 10; })
+											.attr("width", function(d){ return  1 + (d.endTime.getTime() - d.startTime.getTime()) / 90000 ; })
+											.attr("height", 16)
+											.attr("fill", function(d){ return jobState2Color.map(d.state);});*/
+				bands.attr("x", function(d){ return (d.startTime.getTime() - leftTime) / timeDelta * viewWidth + leftPos  ; })
+											.attr("y", function(d){ return names.indexOf(d.name)* entryHeight + 10; })
+											.attr("width", function(d){ return  1 + (d.endTime.getTime() - d.startTime.getTime()) / timeDelta * viewWidth ; })
+											.attr("height", bandHeight)
+											.attr("fill", function(d){ return jobState2Color.map(d.state);});
+				bands.exit().remove();
+
+				showTimeAxis(svg);
+/*
+				labels = svg.selectAll("text").data(names);
+				labels.text(function(d){return d;})
+											 .attr("x", 5)
+											 .attr("y", function(d,i){ return i*20 + 20; })
+											 .attr("width", 100)
+											 .attr("color", "black");
+				
+				labels.enter().append("text").text(function(d){return d;})
+											 .attr("x", 5)
+											 .attr("y", function(d,i){ return i*20 + 20; })
+											 .attr("width", 100)
+											 .attr("color", "black");
+				labels.exit().remove();
+				*/
+			}
+			
+			
+			$(document).ready(function(){
+				// Global Variables
+				allJobNames = new Array();
+				allJobData = [];
+				timeChart = d3.select("#timeLine");
+
+				// Load Data and Go
+
+				d3.tsv("JobsInfo.tsv", function(error, data){ 
+					data.forEach(function(d){
+						d.startTime = new Date(d.startTime);
+						d.endTime = new Date(d.endTime);
+						if(allJobNames.indexOf(d.name) < 0)
+							allJobNames.push(d.name);
+						d.user = "demoUser";
+					});
+					allJobData = data;
+					allJobNames.sort();
+					jobData2Show = allJobData;
+					jobNames2Show = allJobNames;
+					showTimeChart(timeChart, jobData2Show, jobNames2Show);
+				});
+				
+				// Set up name filter
+				$("#nameFilter").keyup(function(){
+					var filter = $("#nameFilter").val();
+					// filter out some jobs
+					var patt = new RegExp(filter, "i");
+
+					jobData2Show = [];
+					jobNames2Show = [];
+					allJobData.forEach(function(d){
+						if(patt.test(d.name)){
+							jobData2Show.push(d);
+							if(jobNames2Show.indexOf(d.name) < 0)
+								jobNames2Show.push(d.name);
+						}			
+					});
+					jobNames2Show.sort();
+					// show them
+					showTimeChart(timeChart, jobData2Show, jobNames2Show);
+				});
+
+				var dragTimeLine = d3.behavior.drag()
+				    .on("drag", function(){
+						var timeDelta = rightTime - leftTime;
+				    	leftTime = leftTime - d3.event.dx/viewWidth * timeDelta;
+				    	rightTime = leftTime + timeDelta;
+				    	leftDate.setTime(leftTime);
+				    	rightDate.setTime(rightTime);
+				    	showTimeChart(timeChart, jobData2Show, jobNames2Show);
+				    });
+
+
+				var zoomTimeLine = d3.behavior.zoom()
+					.on("zoom", function(){						
+						var timeDelta = rightTime - leftTime;
+						if((timeDelta <= 900000 && d3.event.scale < 1  )|| (timeDelta >= 3*7*24*60*60*1000 && d3.event.scale > 1) )
+							return;
+						var centerTime = 0.5*(rightTime + leftTime);
+						timeDelta = timeDelta * (d3.event.scale > 1 ? 1.1 : 1.0/1.1) * 0.5;
+						leftTime = centerTime - timeDelta;
+						rightTime = centerTime + timeDelta;
+				    	leftDate.setTime(leftTime);
+				    	rightDate.setTime(rightTime);
+				    	showTimeChart(timeChart, jobData2Show, jobNames2Show);
+					});
+
+				timeChart.call(dragTimeLine);
+
+			});			
+		</script>
+	</head>
+<body>
+<input id="nameFilter" type="text" size="80" placeholder="Type job names to filter."/>
+<svg id="timeLine">
+</svg>
+</body>
+</html>

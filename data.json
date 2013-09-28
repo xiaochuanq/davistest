@@ -1,0 +1,54 @@
+
+ajaxData = [
+            {
+                uid: "12340",
+                name: "app1",
+                events: 
+                [
+                {
+                    startTime: "08/31/2013 12:00",
+                    endTime "08/31/2013 12:45",
+                    state: "succeed",
+                },
+                {
+                    startTime: "9/1/2013 12:00",
+                    endTime "9/1/2013 12:45",
+                    state: "running",
+                }
+                ],
+                resources: []
+            },
+            {
+                uid: "12341",
+                name: "app2",
+                events: [
+                {
+                    startTime: "08/31/2013 1:00",
+                    endTime "08/31/2013 2:00",
+                    state: "canceled",
+                },
+                {
+                    startTime: "08/31/2013 4:00",
+                    endTime "08/31/2013 4:45",
+                    state: "failed",
+                },  
+                {
+                    startTime: "08/31/2013 5:00",
+                    endTime "8/31/2013 9:45",
+                    state: "succeed"
+                }
+                ],
+                resources: []   
+            },
+            {
+                uid: "12342",
+                name: "app3",
+                events:[
+                ]
+            },
+            {
+                uid: "12343",
+                name: "app4",
+                resources: []
+            }
+        ];

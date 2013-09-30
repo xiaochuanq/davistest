@@ -177,9 +177,32 @@ var TimeLineView = Backbone.View.extent({
 		return max(1, (t2 - t1) * this.pixelPerMs);
 		
 	},
+
+	jobState2Color: function(state){
+		return {
+				Running : "blue",
+				Queued: "orange",
+				CompletedSuccess: "green",
+				CompletedFailure: "red",
+				Cancelled: "maroon",
+				Interrupted: "firebrick",
+				None: "gray"
+			}[state];
+	},
 	
 	renderJobLogs: function(jobLogs, jobNameIdx) {
 		/*
+
+		jobState2Color = new JobStateColorMapper({
+				Running : "blue",
+				Queued: "orange",
+				CompletedSuccess: "green",
+				CompletedFailure: "red",
+				Cancelled: "maroon",
+				Interrupted: "firebrick",
+				None: "gray"
+			}, "gray");
+
 		var bands = svg.selectAll("rect").data(dataSet);
 				bands.enter().append("rect");.attr("y", function(d){ return names.indexOf(d.name)*20 + 10; })
 											.attr("width", function(d){ return  1 + (d.endTime.getTime() - d.startTime.getTime()) / 90000 ; })
@@ -201,25 +224,22 @@ var TimeLineView = Backbone.View.extent({
 		jobBlocks.enter().append("g. job");
 		
 		var self = this;
-		jobBlocks.append("rect .queued").attr("x", function(d){return self.timeToPosition(d.submitTime);})
+		jobBlocks.append("rect").attr("x", function(d){return self.timeToPosition(d.submitTime);})
 								.attr("y", function(d){ return jobNameIdx[d] * 20;});
-								.attr("width",function(d){ return self.timeToDistance(d.submitTime, d.startTime? self.endTime);})
-								.attr("height", 16);
+								.attr("width",function(d){ 
+									return self.timeToDistance(d.submitTime, d.startTime? d.startTime, self.endTime);})
+								.attr("height", 16)
+								.attr("fill", function(d){return self.jobState2Color.map(d.state);});
 		
-		jobBlocks.append("rect").attr("x",)
-								.attr("y",)
-								.attr("width",)
-								.attr("height",);
+		jobBlocks.append("rect").attr("x",function(d){return self.timeToPosition(d.startTime);}})
+								.attr("y",function(d){return jobNameIdx[d] * 20;})
+								.attr("width",function(d){ 
+									return self.timeToDistance(d.startTime, d.endTime? d.endTime, self.endTime);})
+								.attr("height", 20)
+								.attr("fill", function(d){return self.jobState2Color.map(d.state);});
 		
 		jobBlocks.exit().remove();
-		
-	    this.svg.selectAll("g .job")
-	        .data(this.mapData()) // { x: xAttr, y: yAttr }
-	        .enter().append("rect")
-	        .attr("class", "bar")
-	        .attr("x", function(d) { return x(d.x); })
-	        .attr("width", x.rangeBand())
-	        .attr("y", function(d) { return y(d.y); })
-	        .attr("height", function(d) { return chart.height - y(d.y); });
+
+
   	}
 });

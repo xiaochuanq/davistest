@@ -4,23 +4,32 @@
     <title>Davis Line Charts</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
-		<script type="text/javascript" src="js/jquery-1.10.2.js"></script>
+    <link href="css/reveal.css" rel="stylesheet"/>
+    <script type="text/javascript" src="js/jquery-1.10.2.js"></script>
     <script type="text/javascript" src='js/d3.v3.min.js'></script>
     <script type="text/javascript" src='js/queue.js'></script>
     <script type="text/javascript" src='js/underscore.js'></script>
-		<script type="text/javascript" src="js/backbone.js"></script>
+    <script type="text/javascript" src="js/backbone.js"></script>
+    <script type="text/javascript" src="js/jquery.reveal.js"></script>
+    <script type="text/javascript" src="js/linechart.js"></script>
     <script type="text/javascript">
     $(document).ready(function(){
       $(".minichart").click(function(e){
-          $( "#dialog-message" ).dialog({
-            modal: true,
-            buttons: {
-                Ok: function() {
-                    $( this ).dialog( "close" );
-                }
-            }
+        $('#chartLayer').reveal({
+           animation: 'fadeAndPop',
+           animationspeed: 300, 
+           closeonbackgroundclick: true, 
+           dismissmodalclass: 'close-reveal-modal' 
           });
-      })
+      });
+
+      var lineChart1 = new LineChart({scale: "linear"});
+      lineChart1.getData("data/PnConsolidatedStats20130930.tsv", ["Regular Processes", "Bonus Processes"]);
+
+      $("body").on("dataready", function(e){
+          e.sender.setSVG(d3.select("#mini1"));
+          e.sender.render();
+      });
     });
     </script>
     <style>
@@ -30,22 +39,29 @@ body {
 }
 
 .minichart{
-  width: 320px;
+  width:320px;
   height:240px;
+}
+
+.lgchart{
+  width:1280px;
+  height:960px;
 }
 
   </style>
   </head>
+
   <body>
-      <div id="dialog-message" title="Download complete" style="display:none; z-index:21786378;">
-        <h2>LOADING...</h2>
+    <div id="chartLayer" class="reveal-modal xxlarge">
+      <svg class="lgchart"></svg>
+      <a class="close-reveal-modal">&#215;</a>
     </div>
     
     <div class="container">
       <div class="col-md-4">
         <div class="panel panel-default">
           <div class="panel-heading"><h3 class="panel-title">Hello,</h3></div>
-          <div class="panel-body"><svg class="minichart"></svg></div>
+          <div class="panel-body"><svg class="minichart" id="mini1"></svg></div>
         </div>
       </div>
       <div class="col-md-4">

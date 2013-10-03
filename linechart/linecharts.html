@@ -23,7 +23,7 @@
           });
       });
 
-      var lineChart1 = new LineChart({scale: "linear"});
+      var lineChart1 = new LineChart({scale: "log"});
       lineChart1.getData("data/PnConsolidatedStats20130930.tsv", ["Regular Processes", "Bonus Processes"]);
 
       $("body").on("dataready", function(e){

@@ -30,11 +30,13 @@ function LineChart(options){
     self.color = d3.scale.category10();
     self.xScale = d3.time.scale();
     self.yScale = d3.scale[self.options.scale]();
+    if(self.options.scale=="log")
+        self.yScale.base(2);
 
     self.line = d3.svg.line()
     	.interpolate("linear")
         .x(function(d){ return self.xScale(d[0]);})
-        .y(function(d){ return self.yScale(d[1]);});
+        .y(function(d){ return self.height+self.margin.top-self.yScale(d[1]);});
 
     self.xAxis = d3.svg.axis()
             .scale(self.xScale)
@@ -52,9 +54,21 @@ function LineChart(options){
         var svgHeight = self.svg[0][0].clientHeight;
         self.width = svgWidth - self.margin.left - self.margin.right;
         self.height = svgHeight - self.margin.top - self.margin.bottom;
+        
         self.xScale.range([self.margin.left, self.margin.left+self.width]);
-        self.yScale.range([self.height + self.margin.top, self.margin.top]);
+        self.yScale.range([self.margin.top, self.height + self.margin.top]);
+        
         self.xAxis.tickSize(-self.height);
+    };
+
+    self.number2pixel = function(n){
+        //Assume n is in [0, 1]
+        return (1-n) * self.height + self.margin.top;
+    };
+
+    self.datetime2pixel = function(t){
+        //Assume t is in [0, 1]
+        return t*self.width + self.margin.left;
     };
 
     self.getData = function(url, headline){
@@ -74,7 +88,7 @@ function LineChart(options){
                     });                                
                     self.color.domain(headline);
                     self.xScale.domain(d3.extent(dates));
-                    self.yScale.domain([ d3.min(self.paths, function(p){return d3.min(p.values, function(dv){return dv[1];})}),
+                    self.yScale.domain([1,// d3.min(self.paths, function(p){return d3.min(p.values, function(dv){return dv[1];})}),
                     					 d3.max(self.paths, function(p){return d3.max(p.values, function(dv){return dv[1];})})]);
                     $("body").trigger({
                         type:"dataready",
@@ -92,12 +106,14 @@ function LineChart(options){
     self.render = function(){
         self.svg.append("g")
 		    .attr("class", "x axis")
-		    .attr("transform", "translate(0," + self.height + ")")
+            //.attr("transform", "scale("+self.width+",1)")
+		    .attr("transform", "translate(0," + (self.height + self.margin.top)+ ")")
 		    .call(self.xAxis);
 
 		self.svg.append("g")
 		    .attr("class", "y axis")
 		    .attr("transform", "translate(" + self.margin.left +", 0)")
+            //.attr("transform", "scale(1, "+self.height+")")
 		    .call(self.yAxis);
 
         var paths = self.svg.selectAll(".path")

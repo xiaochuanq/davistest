@@ -27,7 +27,7 @@
       lineChart1.getData("data/PnConsolidatedStats20130930.tsv", ["Regular Processes", "Bonus Processes"]);
 
       $("body").on("dataready", function(e){
-          e.sender.setSVG(d3.select("#mini1"));
+          e.sender.setSVG("large1");
           e.sender.render();
       });
     });
@@ -44,8 +44,27 @@ body {
 }
 
 .lgchart{
-  width:1280px;
-  height:960px;
+  width:1024px;
+  height:768px;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+}
+
+.y.axis path{
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
 }
 
   </style>
@@ -53,7 +72,7 @@ body {
 
   <body>
     <div id="chartLayer" class="reveal-modal xxlarge">
-      <svg class="lgchart"></svg>
+      <svg class="lgchart" id="large1"></svg>
       <a class="close-reveal-modal">&#215;</a>
     </div>
     
